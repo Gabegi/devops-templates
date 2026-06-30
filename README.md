@@ -49,3 +49,17 @@ Go to the shopping bag icon → Browse Marketplace → search for it (or go stra
 
 # merge conflics in github desktop
 For conflicts: merge the target branch into yours (Branch menu → Merge into current branch). GitHub Desktop lists the conflicted files — click one to open it in your configured external editor, resolve the markers, mark it resolved, then commit and push, same as the general local-resolve flow.
+
+# ado environments
+Pipelines → Environments → New environment. Create two: name them dev and prod (must match $(envName) exactly), Resource type: None — you're not targeting Kubernetes/VMs, Terraform deploys via the service connection.
+For prod, immediately add the approval gate so nothing slips through ungated: open the environment → ⋯ (top right) → Approvals and checks → + → Approvals → add your approver(s) and a timeout → Create.
+One thing worth knowing: if a YAML pipeline references an environment that doesn't exist, Azure Pipelines will auto-create it under certain conditions — but it creates it with no approval check, so your first prod run could go through unprotected if you don't set this up manually first. Create both environments (and the prod approval) before your next push.
+
+my branches are
+
+Clarified that environment and branch names needn't match technically
+No, they're independent — the environment name is just whatever string you put after environment: in the YAML and create under Pipelines → Environments. It doesn't need to match the branch name at all.
+
+In the pipeline, the branch name (development/production) only drives which values the conditional variable block picks — including envName. I set that to short canonical names (dev/prod) on purpose, decoupled from your actual branch names. That's a common convention and totally fine to keep.
+
+If you'd rather have 1:1 clarity, you can rename envName to development/production to match exactly — just make sure whatever string ends up in the YAML is exactly what you create in Pipelines → Environments. Want me to update the pipeline file to use development/production instead of dev/prod?
