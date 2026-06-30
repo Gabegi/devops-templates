@@ -45,6 +45,16 @@ az repos policy merge-strategy create `
   --allow-no-fast-forward false --allow-rebase false --allow-rebase-merge false `
   --blocking true --enabled true
  
-Write-Host "Done. production and development now require PRs and can't be deleted (automatic with any required policy)."
+Write-Host "== LOCKING BRANCHES =="
+# Explicitly lock both branches at the ref level so direct pushes are rejected even for admins
+foreach ($branch in @("production", "development")) {
+    $sha = az repos ref list --repository $REPO_ID --filter "heads/$branch" --query "[0].objectId" -o tsv
+    az rest --method POST `
+        --uri "${ORG}${PROJECT}/_apis/git/repositories/${REPO_ID}/refs?api-version=7.1" `
+        --body "[{`"name`":`"refs/heads/$branch`",`"oldObjectId`":`"$sha`",`"newObjectId`":`"$sha`",`"isLocked`":true}]" | Out-Null
+    Write-Host "Locked: $branch"
+}
+
+Write-Host "Done. production is the default branch. production and development are locked and require PRs."
 Write-Host "Build validation NOT set yet - run add-build-validation.ps1 once you have a CI pipeline."
 Write-Host "Reminder: enforce 'feature/' naming via a script step in your CI pipeline."
