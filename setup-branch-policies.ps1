@@ -10,7 +10,11 @@ $REPO    = ""
 az devops configure --defaults organization=$ORG project=$PROJECT
 $REPO_ID = az repos show --repository $REPO --query id -o tsv
 Write-Host "Repo ID: $REPO_ID"
- 
+
+# Set production as the default branch
+az repos update --repository $REPO --default-branch production
+Write-Host "Default branch set to: production"
+
 Write-Host "== PRODUCTION =="
  
 # Minimum 1 reviewer; creator's own vote doesn't count; votes reset on new push
